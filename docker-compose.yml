@@ -1,0 +1,36 @@
+name: my-project
+services:
+  ros2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: base
+      args:
+        ROS_DISTRO: ${ROS_DISTRO:-jazzy}
+        USER_UID: ${USER_UID:-1000}
+        USER_GID: ${USER_GID:-1000}
+    image: ${COMPOSE_PROJECT_NAME}:${ROS_DISTRO:-jazzy}
+    container_name: ${COMPOSE_PROJECT_NAME}
+
+    network_mode: host
+    ipc: host
+
+    environment:
+      DISPLAY: ${DISPLAY}
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: all,graphics
+      __GLX_VENDOR_LIBRARY_NAME: nvidia
+      __NV_PRIME_RENDER_OFFLOAD: "1"
+
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - .:/home/ros/ws:cached
+    working_dir: /home/ros/ws
+    user: ros
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

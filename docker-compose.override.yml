@@ -1,0 +1,25 @@
+# Committed as part of this template. Picked up automatically by
+# `docker compose up` alongside docker-compose.yml.
+# Builds the dev stage on top of base+deps and wires up everything that
+# used to be devcontainer.json's runArgs / mounts / containerEnv.
+services:
+  ros2:
+    build:
+      target: dev
+    image: ${COMPOSE_PROJECT_NAME}:${ROS_DISTRO:-jazzy}-dev
+    container_name: ${COMPOSE_PROJECT_NAME}-dev
+
+    pid: host
+    cap_add:
+      - SYS_PTRACE
+
+    volumes:
+      - ${HOME}/.config/nvim:/home/ros/.config/nvim:cached
+      - nvim-data:/home/ros/.local/share/nvim
+
+    command: sleep infinity
+    stdin_open: true
+    tty: true
+
+volumes:
+  nvim-data:
