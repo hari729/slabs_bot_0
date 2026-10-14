@@ -1,4 +1,4 @@
-name: my-project
+name: slabs_bot_0
 services:
   ros2:
     build:
@@ -25,6 +25,16 @@ services:
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
       - .:/home/ros/ws:cached
+      # Mount all of /dev so Docker never crashes if devices are missing at boot.
+      # This allows PlatformIO symlinks to dynamically appear when plugged in.
+      - /dev:/dev:ro
+
+    device_cgroup_rules:
+      # SECURITY: Banish keyboard/mouse by ONLY whitelisting these specific classes:
+      - "c 166:* rwm" # ACM USB Devices (Arduinos)
+      - "c 188:* rwm" # USB-to-Serial Chips (ESP32)
+      - "c 13:* rwm" # Input Subsystem (Strictly allows Joysticks / Gamepads)
+
     working_dir: /home/ros/ws
     user: ros
     deploy:

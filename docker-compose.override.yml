@@ -14,7 +14,7 @@ services:
       - SYS_PTRACE
 
     volumes:
-      - ${HOME}/.config/nvim:/home/ros/.config/nvim:cached
+      - ${HOME}/.config/nvim:/home/ros/.config/nvim:cached,ro
       - nvim-data:/home/ros/.local/share/nvim
 
     command: sleep infinity

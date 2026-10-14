@@ -49,13 +49,11 @@ RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> ~/.bashrc
 USER root
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        ros-${ROS_DISTRO}-ros-gz \
-        ros-${ROS_DISTRO}-turtlesim \
-        # ros-${ROS_DISTRO}-gz-ros2-control \
-        # ros-${ROS_DISTRO}-navigation2 \
-        # ros-${ROS_DISTRO}-nav2-bringup \
-        # ros-${ROS_DISTRO}-slam-toolbox \
-        # ros-${ROS_DISTRO}-robot-localization \
+        ros-${ROS_DISTRO}-ros2-control \
+        ros-${ROS_DISTRO}-ros2-controllers \
+        ros-${ROS_DISTRO}-joy \
+        ros-${ROS_DISTRO}-teleop-twist-joy \
+        ros-${ROS_DISTRO}-teleop-twist-keyboard \
         ros-${ROS_DISTRO}-rviz2 \
         ros-${ROS_DISTRO}-rviz-common \
         ros-${ROS_DISTRO}-rviz-default-plugins \
