@@ -1,0 +1,8 @@
+<launch>
+  <let name="rviz_config_path" value="$(find-pkg-share my_robot_description)/rviz/urdf_config.rviz"></let>
+  <node args="-d $(var rviz_config_path)" exec="rviz2" output="screen" pkg="rviz2"></node>
+  <node exec="teleop_twist_keyboard" launch-prefix="xterm -e" name="teleop_twist_keyboard" output="screen" pkg="teleop_twist_keyboard">
+    <param name="stamped" value="true"></param>
+    <remap from="cmd_vel" to="/diff_drive_controller/cmd_vel"></remap>
+  </node>
+</launch>
