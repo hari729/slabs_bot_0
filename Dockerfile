@@ -6,7 +6,7 @@
 # stage — it's the shareable, project-portable image.
 # =============================================================================
 ARG ROS_DISTRO=jazzy
-FROM osrf/ros:${ROS_DISTRO}-desktop AS base
+FROM ros:${ROS_DISTRO}-ros-base AS base
 
 ENV DEBIAN_FRONTEND=noninteractive \
     ROS_DISTRO=${ROS_DISTRO} \
