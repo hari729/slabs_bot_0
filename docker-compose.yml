@@ -21,6 +21,9 @@ services:
       NVIDIA_DRIVER_CAPABILITIES: all,graphics
       __GLX_VENDOR_LIBRARY_NAME: nvidia
       __NV_PRIME_RENDER_OFFLOAD: "1"
+      ROS_DOMAIN_ID: 42 # same non-default value on both
+      ROS_AUTOMATIC_DISCOVERY_RANGE: SUBNET # discover across the LAN
+      RMW_IMPLEMENTATION: rmw_fastrtps_cpp
 
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
