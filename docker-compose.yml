@@ -11,6 +11,9 @@ services:
         USER_GID: ${USER_GID:-1000}
     image: ${COMPOSE_PROJECT_NAME}:${ROS_DISTRO:-jazzy}
     container_name: ${COMPOSE_PROJECT_NAME}
+    stdin_open: true
+    tty: true
+    command: sleep infinity
 
     network_mode: host
     ipc: host
