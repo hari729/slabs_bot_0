@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- =============================================================================
+     mobile_base.ros2_control.xacro — ros2_control block for ESP32 hardware interface
+
+     Parameter you MUST calibrate on the real robot:
+       - ticks_per_revolution  (rotate wheel 10 revs, count ticks / 10)
+
+     Wheel geometry (wheel_radius, wheel_separation) is configured in the
+     diff_drive_controller YAML, not here.
+     ============================================================================= --><robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <ros2_control name="esp32_diff_drive_ros2_control" type="system">
+    <hardware>
+      <plugin>esp32_hardware/Esp32HardwareInterface</plugin>
+      <param name="serial_port">/dev/esp32</param>
+      <param name="baud_rate">115200</param>
+      <!-- CALIBRATE: encoder ticks per wheel revolution -->
+      <param name="ticks_per_revolution">1399.2</param>
+    </hardware>
+    <joint name="base_right_1_wheel_joint">
+      <command_interface name="velocity">
+        <param name="min">-10.0</param>
+        <param name="max">10.0</param>
+      </command_interface>
+      <state_interface name="position"></state_interface>
+      <state_interface name="velocity"></state_interface>
+    </joint>
+    <joint name="base_right_2_wheel_joint">
+      <command_interface name="velocity">
+        <param name="min">-10.0</param>
+        <param name="max">10.0</param>
+      </command_interface>
+      <state_interface name="position"></state_interface>
+      <state_interface name="velocity"></state_interface>
+    </joint>
+    <joint name="base_left_1_wheel_joint">
+      <command_interface name="velocity">
+        <param name="min">-10.0</param>
+        <param name="max">10.0</param>
+      </command_interface>
+      <state_interface name="position"></state_interface>
+      <state_interface name="velocity"></state_interface>
+    </joint>
+    <joint name="base_left_2_wheel_joint">
+      <command_interface name="velocity">
+        <param name="min">-10.0</param>
+        <param name="max">10.0</param>
+      </command_interface>
+      <state_interface name="position"></state_interface>
+      <state_interface name="velocity"></state_interface>
+    </joint>
+  </ros2_control>
+</robot>

@@ -1,0 +1,9 @@
+<library path="esp32_hardware">
+  <class name="esp32_hardware/Esp32HardwareInterface"
+         type="esp32_hardware::Esp32HardwareInterface"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>
+      USB serial hardware interface for ESP32 differential drive (encoder ticks + RPM commands).
+    </description>
+  </class>
+</library>

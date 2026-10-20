@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:property name="base_length" value="0.215"></xacro:property>
+  <xacro:property name="base_width" value="0.135"></xacro:property>
+  <xacro:property name="base_height" value="0.04"></xacro:property>
+  <xacro:property name="wheel_radius" value="0.035"></xacro:property>
+  <xacro:property name="wheel_length" value="0.0075"></xacro:property>
+  <link name="base_footprint"></link>
+  <link name="base_link">
+    <visual>
+      <geometry>
+        <box size="${base_length} ${base_width} ${base_height}"></box>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0 0 ${base_height / 2.0}"></origin>
+      <material name="blue"></material>
+    </visual>
+  </link>
+  <xacro:macro name="wheel_link" params="prefix">
+    <link name="${prefix}_wheel_link">
+      <visual>
+        <geometry>
+          <cylinder length="${wheel_length}" radius="${wheel_radius}"></cylinder>
+        </geometry>
+        <origin rpy="${pi / 2.0} 0 0" xyz="0 0 0"></origin>
+        <material name="grey"></material>
+      </visual>
+    </link>
+  </xacro:macro>
+  <xacro:wheel_link prefix="right_1"></xacro:wheel_link>
+  <xacro:wheel_link prefix="right_2"></xacro:wheel_link>
+  <xacro:wheel_link prefix="left_1"></xacro:wheel_link>
+  <xacro:wheel_link prefix="left_2"></xacro:wheel_link>
+  <joint name="base_joint" type="fixed">
+    <parent link="base_footprint"></parent>
+    <child link="base_link"></child>
+    <origin rpy="0 0 0" xyz="0 0 ${wheel_radius - 0.016}"></origin>
+  </joint>
+  <joint name="base_right_1_wheel_joint" type="continuous">
+    <parent link="base_link"></parent>
+    <child link="right_1_wheel_link"></child>
+    <origin rpy="0 0 0" xyz="-${((base_length / 2.0) - 0.03)} ${-(base_width + wheel_length + 0.005) / 2.0} 0.016"></origin>
+    <axis xyz="0 1 0"></axis>
+  </joint>
+  <joint name="base_left_1_wheel_joint" type="continuous">
+    <parent link="base_link"></parent>
+    <child link="left_1_wheel_link"></child>
+    <origin rpy="0 0 0" xyz="-${((base_length / 2.0) - 0.03)} ${(base_width + wheel_length+ 0.005) / 2.0} 0.016"></origin>
+    <axis xyz="0 1 0"></axis>
+  </joint>
+  <joint name="base_right_2_wheel_joint" type="continuous">
+    <parent link="base_link"></parent>
+    <child link="right_2_wheel_link"></child>
+    <origin rpy="0 0 0" xyz="${((base_length / 2.0) - 0.03)} ${-(base_width + wheel_length+ 0.005) / 2.0} 0.016"></origin>
+    <axis xyz="0 1 0"></axis>
+  </joint>
+  <joint name="base_left_2_wheel_joint" type="continuous">
+    <parent link="base_link"></parent>
+    <child link="left_2_wheel_link"></child>
+    <origin rpy="0 0 0" xyz="${((base_length / 2.0) - 0.03)} ${(base_width + wheel_length+ 0.005) / 2.0} 0.016"></origin>
+    <axis xyz="0 1 0"></axis>
+  </joint>
+</robot>
