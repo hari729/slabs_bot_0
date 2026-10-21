@@ -10,7 +10,7 @@
   ],
   "extraPaths": [
     "install/my_inters/lib/python3.12/site-packages",
-    "/opt/ros/humble/lib/python3.10/site-packages"
+    "/opt/ros/jazzy/lib/python3.12/site-packages"
   ],
   "typeCheckingMode": "basic",
   "reportPrivateImportUsage": "none",

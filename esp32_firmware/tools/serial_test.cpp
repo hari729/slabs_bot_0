@@ -19,6 +19,8 @@
 #include <thread>
 #include <vector>
 
+#include "../include/protocol.h"
+
 using Clock = std::chrono::steady_clock;
 
 static std::atomic<bool> g_abort{false};
@@ -28,9 +30,16 @@ static std::mutex g_mu;
 static long g_ticks[2] = {0, 0};
 static unsigned long g_packets = 0;
 
-static void send_line(const std::string &s) {
-  const std::string out = s + "\n";
-  if (g_fd >= 0) (void)!write(g_fd, out.c_str(), out.size());
+static void send_frame(esp32_protocol::PacketType type, const void *payload, uint8_t len) {
+  if (g_fd < 0) return;
+  uint8_t frame[64];
+  const uint16_t n = esp32_protocol::frame_pack(type, payload, len, frame);
+  (void)!write(g_fd, frame, n);
+}
+
+static void send_velocity(float left_rpm, float right_rpm) {
+  esp32_protocol::VelocityCmd cmd{left_rpm, right_rpm};
+  send_frame(esp32_protocol::PacketType::VelocityCmd, &cmd, sizeof(cmd));
 }
 
 static void on_sigint(int) { g_abort = true; }
@@ -52,24 +61,30 @@ static bool open_port(const char *path) {
 }
 
 static void reader_thread() {
-  std::string buf;
-  char c;
+  esp32_protocol::FrameParser parser;
+  uint8_t c;
   while (!g_abort) {
     const ssize_t n = read(g_fd, &c, 1);
     if (n <= 0) continue;
-    if (c != '\n') {
-      if (c != '\r') buf += c;
+
+    const auto result = parser.feed(c);
+    if (result != esp32_protocol::FrameParser::Result::FrameReady) {
+      if (result == esp32_protocol::FrameParser::Result::InvalidFrame) {
+        parser.reset();
+      }
       continue;
     }
-    long l, r;
-    unsigned long us;
-    if (sscanf(buf.c_str(), "E %ld %ld %lu", &l, &r, &us) == 3) {
+
+    if (parser.type() == esp32_protocol::PacketType::EncoderReport &&
+        parser.length() == sizeof(esp32_protocol::EncoderReport)) {
+      esp32_protocol::EncoderReport report;
+      std::memcpy(&report, parser.payload(), sizeof(report));
       std::lock_guard<std::mutex> lk(g_mu);
-      g_ticks[0] = l;
-      g_ticks[1] = r;
+      g_ticks[0] = report.left_ticks;
+      g_ticks[1] = report.right_ticks;
       g_packets++;
     }
-    buf.clear();
+    parser.reset();
   }
 }
 
@@ -101,17 +116,14 @@ static double g_rpm, g_secs, g_tpr, g_tol;
 
 static Result run_phase(const std::string &name, double l, double r) {
   const double tgt[2] = {l, r};
-  char cmd[64];
-  snprintf(cmd, sizeof cmd, "V %.2f %.2f", l, r);
 
-  // Give the motors a settle time, then measure for the rest of the phase.
   const auto start = Clock::now();
   Snap a{};
   bool a_taken = false;
   while (!g_abort) {
     const double el = std::chrono::duration<double>(Clock::now() - start).count();
     if (el >= g_secs) break;
-    send_line(cmd);
+    send_velocity(static_cast<float>(l), static_cast<float>(r));
     if (!a_taken && el >= 1.0) {
       a = snap();
       a_taken = true;
@@ -119,7 +131,7 @@ static Result run_phase(const std::string &name, double l, double r) {
     sleep_ms(100);
   }
   const Snap b = snap();
-  send_line("V 0 0");
+  send_velocity(0.0f, 0.0f);
 
   Result res{name, {0, 0}, {0, 0}, 0, true};
   if (!a_taken) {
@@ -151,7 +163,7 @@ static Result run_phase(const std::string &name, double l, double r) {
 }
 
 static void stop_and_wait() {
-  send_line("S");
+  send_velocity(0.0f, 0.0f);
   sleep_ms(800);
 }
 
@@ -159,7 +171,7 @@ static void watchdog_test() {
   printf("Watchdog test...\n");
   const double v = g_rpm;
   for (int i = 0; i < 20 && !g_abort; i++) {
-    send_line("V " + std::to_string(v) + " " + std::to_string(v));
+    send_velocity(static_cast<float>(v), static_cast<float>(v));
     sleep_ms(100);
   }
   sleep_ms(900);
@@ -197,7 +209,7 @@ int main(int argc, char **argv) {
   std::thread rd(reader_thread);
 
   sleep_ms(2500);
-  send_line("S");
+  send_velocity(0.0f, 0.0f);
   sleep_ms(500);
   if (snap().pk == 0) {
     printf("No encoder packets received on %s\n", port);
@@ -222,7 +234,7 @@ int main(int argc, char **argv) {
   }
   if (!g_abort) watchdog_test();
 
-  send_line("S");
+  send_velocity(0.0f, 0.0f);
   g_abort = true;
   rd.join();
   close(g_fd);

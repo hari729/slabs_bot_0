@@ -9,7 +9,6 @@
 #include <cerrno>
 #include <cstring>
 #include <fcntl.h>
-#include <sstream>
 #include <termios.h>
 #include <unistd.h>
 
@@ -53,7 +52,8 @@ void Esp32HardwareDriver::close()
     ::close(fd_);
     fd_ = -1;
   }
-  read_buffer_.clear();
+  frame_parser_.reset();
+  have_latest_report_ = false;
 }
 
 bool Esp32HardwareDriver::isConnected() const
@@ -68,7 +68,7 @@ void Esp32HardwareDriver::update(double period_sec)
   long left_ticks = 0;
   long right_ticks = 0;
 
-  if (parseLatestEncoderLine(left_ticks, right_ticks)) {
+  if (parseLatestEncoderReport(left_ticks, right_ticks)) {
     left_position_ = ticksToRadians(left_ticks);
     right_position_ = ticksToRadians(right_ticks);
 
@@ -155,47 +155,40 @@ void Esp32HardwareDriver::readAvailableBytes()
     return;
   }
 
-  char buffer[256];
+  uint8_t buffer[256];
   while (true) {
     ssize_t n = ::read(fd_, buffer, sizeof(buffer));
     if (n > 0) {
-      read_buffer_.append(buffer, static_cast<size_t>(n));
+      for (ssize_t i = 0; i < n; ++i) {
+        const auto result = frame_parser_.feed(buffer[i]);
+        if (result == esp32_protocol::FrameParser::Result::FrameReady) {
+          if (frame_parser_.type() == esp32_protocol::PacketType::EncoderReport &&
+              frame_parser_.length() == sizeof(esp32_protocol::EncoderReport))
+          {
+            std::memcpy(&latest_report_, frame_parser_.payload(), sizeof(latest_report_));
+            have_latest_report_ = true;
+          }
+          frame_parser_.reset();
+        } else if (result == esp32_protocol::FrameParser::Result::InvalidFrame) {
+          frame_parser_.reset();
+        }
+      }
     } else {
       break;
     }
   }
 }
 
-bool Esp32HardwareDriver::parseLatestEncoderLine(long & left_ticks, long & right_ticks)
+bool Esp32HardwareDriver::parseLatestEncoderReport(long & left_ticks, long & right_ticks)
 {
-  bool found = false;
-
-  size_t newline_pos = read_buffer_.find('\n');
-  while (newline_pos != std::string::npos) {
-    std::string line = read_buffer_.substr(0, newline_pos);
-    read_buffer_.erase(0, newline_pos + 1);
-
-    if (!line.empty() && line.back() == '\r') {
-      line.pop_back();
-    }
-
-    // Parse encoder report: "E <left> <right> <timestamp>"
-    if (line.size() > 2 && line[0] == 'E' && line[1] == ' ') {
-      std::istringstream iss(line.substr(2));
-      long left = 0;
-      long right = 0;
-      long timestamp = 0;
-      if (iss >> left >> right >> timestamp) {
-        left_ticks = left;
-        right_ticks = right;
-        found = true;
-      }
-    }
-
-    newline_pos = read_buffer_.find('\n');
+  if (!have_latest_report_) {
+    return false;
   }
 
-  return found;
+  left_ticks = static_cast<long>(latest_report_.left_ticks);
+  right_ticks = static_cast<long>(latest_report_.right_ticks);
+  have_latest_report_ = false;
+  return true;
 }
 
 bool Esp32HardwareDriver::sendVelocityCommand(double left_rpm, double right_rpm)
@@ -204,12 +197,16 @@ bool Esp32HardwareDriver::sendVelocityCommand(double left_rpm, double right_rpm)
     return false;
   }
 
-  std::ostringstream oss;
-  oss << "V " << left_rpm << " " << right_rpm << "\n";
-  const std::string msg = oss.str();
+  esp32_protocol::VelocityCmd cmd;
+  cmd.left_rpm = static_cast<float>(left_rpm);
+  cmd.right_rpm = static_cast<float>(right_rpm);
 
-  ssize_t written = ::write(fd_, msg.c_str(), msg.size());
-  return written == static_cast<ssize_t>(msg.size());
+  uint8_t frame[sizeof(cmd) + 6];
+  const uint16_t frame_len = esp32_protocol::frame_pack(
+      esp32_protocol::PacketType::VelocityCmd, &cmd, sizeof(cmd), frame);
+
+  ssize_t written = ::write(fd_, frame, frame_len);
+  return written == static_cast<ssize_t>(frame_len);
 }
 
 double Esp32HardwareDriver::ticksToRadians(long ticks) const

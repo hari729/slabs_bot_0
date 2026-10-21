@@ -8,15 +8,15 @@
  * Handles the USB serial protocol and all unit conversions between
  * ROS/joint-space (rad, rad/s) and the ESP32 firmware protocol (ticks, RPM).
  *
- * The ESP32 firmware sends encoder reports like:
- *   E <left_ticks> <right_ticks> <timestamp_us>
- *
- * And accepts velocity commands like:
- *   V <left_rpm> <right_rpm>\n
+ * The ESP32 firmware sends EncoderReport frames and accepts VelocityCmd frames.
+ * See protocol.h for the wire format and struct definitions.
  */
 
+#include <cstdint>
 #include <memory>
 #include <string>
+
+#include "esp32_hardware/protocol.h"
 
 namespace esp32_hardware
 {
@@ -65,7 +65,7 @@ public:
 private:
   bool openPort();
   void readAvailableBytes();
-  bool parseLatestEncoderLine(long & left_ticks, long & right_ticks);
+  bool parseLatestEncoderReport(long & left_ticks, long & right_ticks);
   bool sendVelocityCommand(double left_rpm, double right_rpm);
 
   double ticksToRadians(long ticks) const;
@@ -77,7 +77,9 @@ private:
   double ticks_per_revolution_;
 
   int fd_{-1};
-  std::string read_buffer_;
+  esp32_protocol::FrameParser frame_parser_;
+  bool have_latest_report_{false};
+  esp32_protocol::EncoderReport latest_report_{};
 
   double left_position_{0.0};
   double right_position_{0.0};
