@@ -71,7 +71,7 @@ ros2 launch my_robot_bringup teleop_joystick.launch.xml joy_dev:=/dev/input/js0
 ```mermaid
 flowchart LR
     A[Joystick / Keyboard] -->|/joy| B[teleop_twist_joy]
-    B -->|TwistStamped| C[/diff_drive_controller/cmd_vel]
+    B -->|TwistStamped| C["/diff_drive_controller/cmd_vel"]
     C --> D[diff_drive_controller]
     D -->|wheel rad/s| E[esp32_hardware interface]
     E -->|VelocityCmd| F[ESP32]
