@@ -1,35 +1,28 @@
 <launch>
   <!-- Joystick teleop for Jazzy. Mirrors teleop_keyboard.launch.xml -->
-  <let name="rviz_config_path" value="$(find-pkg-share my_robot_description)/rviz/urdf_config.rviz"/>
-  <arg name="joy_dev" default="/dev/input/js0" description="Joystick device"/>
-
+  <let name="rviz_config_path" value="$(find-pkg-share my_robot_description)/rviz/urdf_config.rviz"></let>
+  <arg default="/dev/input/js0" description="Joystick device" name="joy_dev"></arg>
   <!-- Joy driver: publishes /joy messages -->
-  <node pkg="joy" exec="joy_node" name="joy_node" output="screen">
-    <param name="dev" value="$(var joy_dev)"/>
-    <param name="deadzone" value="0.05"/>
-    <param name="autorepeat_rate" value="20.0"/>
+  <node exec="joy_node" name="joy_node" output="screen" pkg="joy">
+    <param name="dev" value="$(var joy_dev)"></param>
+    <param name="deadzone" value="0.05"></param>
+    <param name="autorepeat_rate" value="20.0"></param>
   </node>
-
   <!-- Teleop node: maps /joy axes to /diff_drive_controller/cmd_vel -->
-  <node pkg="teleop_twist_joy" exec="teleop_node" name="teleop_twist_joy" output="screen">
-    <param name="publish_stamped_twist" value="true"/>
-    <param name="require_enable_button" value="false"/>
-
+  <node exec="teleop_node" name="teleop_twist_joy" output="screen" pkg="teleop_twist_joy">
+    <param name="publish_stamped_twist" value="true"></param>
+    <param name="require_enable_button" value="false"></param>
     <!-- Default Xbox-style layout -->
-    <param name="axis_linear.x" value="1"/>
-    <param name="axis_angular.yaw" value="0"/>
-
-    <param name="scale_linear.x" value="0.5"/>
-    <param name="scale_linear_turbo.x" value="1.0"/>
-    <param name="scale_angular.yaw" value="1.0"/>
-    <param name="scale_angular_turbo.yaw" value="2.0"/>
-
+    <param name="axis_linear.x" value="1"></param>
+    <param name="axis_angular.yaw" value="0"></param>
+    <param name="scale_linear.x" value="0.5"></param>
+    <param name="scale_linear_turbo.x" value="1.0"></param>
+    <param name="scale_angular.yaw" value="2.0"></param>
+    <param name="scale_angular_turbo.yaw" value="3.0"></param>
     <!-- Hold LB (button 4) for turbo. -1 disables the enable button. -->
-    <param name="enable_button" value="-1"/>
-    <param name="enable_turbo_button" value="4"/>
-
-    <remap from="cmd_vel" to="/diff_drive_controller/cmd_vel"/>
+    <param name="enable_button" value="-1"></param>
+    <param name="enable_turbo_button" value="4"></param>
+    <remap from="cmd_vel" to="/diff_drive_controller/cmd_vel"></remap>
   </node>
-
-  <node pkg="rviz2" exec="rviz2" args="-d $(var rviz_config_path)" output="screen"/>
+  <node args="-d $(var rviz_config_path)" exec="rviz2" output="screen" pkg="rviz2"></node>
 </launch>
