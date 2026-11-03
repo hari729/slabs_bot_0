@@ -38,6 +38,30 @@ def generate_launch_description():
         arguments=["diff_drive_controller"],
     )
 
+    imu_sensor_broadcaster_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["imu_sensor_broadcaster"],
+    )
+
+    imu_filter_node = Node(
+        package="imu_filter_madgwick",
+        executable="imu_filter_madgwick_node",
+        name="imu_filter_node",
+        parameters=[os.path.join(robot_bringup_path, "config", "ekf.yaml")],
+        remappings=[
+            ("/imu/data_raw", "/imu_sensor_broadcaster/imu"),
+            ("/imu/data", "/imu/data"),
+        ],
+    )
+
+    ekf_node = Node(
+        package="robot_localization",
+        executable="ekf_node",
+        name="ekf_filter_node",
+        parameters=[os.path.join(robot_bringup_path, "config", "ekf.yaml")],
+    )
+
     rviz_node = Node(
         package="rviz2",
         executable="rviz2",
@@ -50,5 +74,8 @@ def generate_launch_description():
         control_node,
         joint_state_broadcaster_spawner,
         diff_drive_controller_spawner,
+        imu_sensor_broadcaster_spawner,
+        imu_filter_node,
+        ekf_node,
         rviz_node,
     ])

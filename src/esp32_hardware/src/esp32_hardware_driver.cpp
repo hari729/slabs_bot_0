@@ -38,6 +38,14 @@ void Esp32HardwareDriver::activate()
   have_prev_ticks_ = false;
   left_velocity_ = 0.0;
   right_velocity_ = 0.0;
+  for (size_t i = 0; i < 3; ++i) {
+    linear_acceleration_[i] = 0.0;
+    angular_velocity_[i] = 0.0;
+    gyro_bias_[i] = 0.0;
+    gyro_bias_sum_[i] = 0.0;
+  }
+  gyro_cal_count_ = 0;
+  gyro_calibrated_ = false;
   sendVelocityCommand(0.0, 0.0);
 }
 
@@ -80,6 +88,37 @@ void Esp32HardwareDriver::update(double period_sec)
     prev_left_ticks_ = left_ticks;
     prev_right_ticks_ = right_ticks;
     have_prev_ticks_ = true;
+
+    // Convert raw int16 counts to SI units.
+    // Accel FS +/-2 g => 16384 LSB/g. Gyro FS +/-250 dps => 131 LSB/dps.
+    double raw_angular_velocity[3];
+    for (size_t i = 0; i < 3; ++i) {
+      linear_acceleration_[i] =
+        static_cast<double>(latest_report_.accel[i]) / 16384.0 * 9.80665;
+      raw_angular_velocity[i] =
+        static_cast<double>(latest_report_.gyro[i]) / 131.0 * (M_PI / 180.0);
+    }
+
+    // Calibrate gyro bias during the first samples after activation.
+    if (!gyro_calibrated_) {
+      if (gyro_cal_count_ < kGyroCalibrationSamples) {
+        for (size_t i = 0; i < 3; ++i) {
+          gyro_bias_sum_[i] += raw_angular_velocity[i];
+          angular_velocity_[i] = 0.0;
+        }
+        ++gyro_cal_count_;
+        if (gyro_cal_count_ == kGyroCalibrationSamples) {
+          for (size_t i = 0; i < 3; ++i) {
+            gyro_bias_[i] = gyro_bias_sum_[i] / static_cast<double>(kGyroCalibrationSamples);
+          }
+          gyro_calibrated_ = true;
+        }
+      }
+    } else {
+      for (size_t i = 0; i < 3; ++i) {
+        angular_velocity_[i] = raw_angular_velocity[i] - gyro_bias_[i];
+      }
+    }
   }
 }
 
@@ -96,6 +135,16 @@ double Esp32HardwareDriver::getPositionRadian(WheelSide side) const
 double Esp32HardwareDriver::getVelocityRadianPerSec(WheelSide side) const
 {
   return side == WheelSide::Left ? left_velocity_ : right_velocity_;
+}
+
+double Esp32HardwareDriver::getLinearAcceleration(size_t axis) const
+{
+  return axis < 3 ? linear_acceleration_[axis] : 0.0;
+}
+
+double Esp32HardwareDriver::getAngularVelocity(size_t axis) const
+{
+  return axis < 3 ? angular_velocity_[axis] : 0.0;
 }
 
 bool Esp32HardwareDriver::openPort()

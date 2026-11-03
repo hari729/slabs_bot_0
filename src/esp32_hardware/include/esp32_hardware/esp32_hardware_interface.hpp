@@ -52,6 +52,8 @@ private:
 
   std::vector<std::string> left_wheel_joint_names_;
   std::vector<std::string> right_wheel_joint_names_;
+
+  std::string imu_sensor_name_{"imu_sensor"};
 };
 
 }  // namespace esp32_hardware

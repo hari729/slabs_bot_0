@@ -6,6 +6,7 @@
 #include "esp32_hardware/esp32_hardware_interface.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <pluginlib/class_list_macros.hpp>
 
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
@@ -24,6 +25,11 @@ std::string positionInterfaceName(const std::string & joint_name)
 std::string velocityInterfaceName(const std::string & joint_name)
 {
   return joint_name + "/" + hardware_interface::HW_IF_VELOCITY;
+}
+
+std::string imuSensorInterfaceName(const std::string & sensor_name, const std::string & interface_name)
+{
+  return sensor_name + "/" + interface_name;
 }
 
 }  // namespace
@@ -75,6 +81,10 @@ hardware_interface::CallbackReturn Esp32HardwareInterface::on_init(
     ticks_per_revolution = std::stod(info_.hardware_parameters.at("ticks_per_revolution"));
   }
 
+  if (!info_.sensors.empty()) {
+    imu_sensor_name_ = info_.sensors.front().name;
+  }
+
   driver_ = std::make_shared<Esp32HardwareDriver>(serial_port, baud_rate, ticks_per_revolution);
 
   return hardware_interface::CallbackReturn::SUCCESS;
@@ -102,8 +112,28 @@ hardware_interface::CallbackReturn Esp32HardwareInterface::on_activate(
       }
     };
 
+  const auto zeroCommand = [this](const std::vector<std::string> & joint_names) {
+      for (const auto & joint_name : joint_names) {
+        set_command(velocityInterfaceName(joint_name), 0.0);
+      }
+    };
+
   zeroState(left_wheel_joint_names_);
   zeroState(right_wheel_joint_names_);
+  zeroCommand(left_wheel_joint_names_);
+  zeroCommand(right_wheel_joint_names_);
+
+  // Initialize IMU sensor state interfaces.
+  set_state(imuSensorInterfaceName(imu_sensor_name_, "orientation.x"), 0.0);
+  set_state(imuSensorInterfaceName(imu_sensor_name_, "orientation.y"), 0.0);
+  set_state(imuSensorInterfaceName(imu_sensor_name_, "orientation.z"), 0.0);
+  set_state(imuSensorInterfaceName(imu_sensor_name_, "orientation.w"), 1.0);
+  set_state(imuSensorInterfaceName(imu_sensor_name_, "angular_velocity.x"), 0.0);
+  set_state(imuSensorInterfaceName(imu_sensor_name_, "angular_velocity.y"), 0.0);
+  set_state(imuSensorInterfaceName(imu_sensor_name_, "angular_velocity.z"), 0.0);
+  set_state(imuSensorInterfaceName(imu_sensor_name_, "linear_acceleration.x"), 0.0);
+  set_state(imuSensorInterfaceName(imu_sensor_name_, "linear_acceleration.y"), 0.0);
+  set_state(imuSensorInterfaceName(imu_sensor_name_, "linear_acceleration.z"), 0.0);
 
   return hardware_interface::CallbackReturn::SUCCESS;
 }
@@ -139,6 +169,14 @@ hardware_interface::return_type Esp32HardwareInterface::read(
     driver_->getPositionRadian(WheelSide::Right),
     driver_->getVelocityRadianPerSec(WheelSide::Right));
 
+  // Update IMU sensor state interfaces.
+  set_state(imuSensorInterfaceName(imu_sensor_name_, "angular_velocity.x"), driver_->getAngularVelocity(0));
+  set_state(imuSensorInterfaceName(imu_sensor_name_, "angular_velocity.y"), driver_->getAngularVelocity(1));
+  set_state(imuSensorInterfaceName(imu_sensor_name_, "angular_velocity.z"), driver_->getAngularVelocity(2));
+  set_state(imuSensorInterfaceName(imu_sensor_name_, "linear_acceleration.x"), driver_->getLinearAcceleration(0));
+  set_state(imuSensorInterfaceName(imu_sensor_name_, "linear_acceleration.y"), driver_->getLinearAcceleration(1));
+  set_state(imuSensorInterfaceName(imu_sensor_name_, "linear_acceleration.z"), driver_->getLinearAcceleration(2));
+
   return hardware_interface::return_type::OK;
 }
 
@@ -147,8 +185,16 @@ hardware_interface::return_type Esp32HardwareInterface::write(
 {
   // diff_drive_controller writes the same velocity to every joint on a side.
   // Use the first joint's command for each side.
-  const double left_cmd = get_command(velocityInterfaceName(left_wheel_joint_names_.front()));
-  const double right_cmd = get_command(velocityInterfaceName(right_wheel_joint_names_.front()));
+  double left_cmd = get_command(velocityInterfaceName(left_wheel_joint_names_.front()));
+  double right_cmd = get_command(velocityInterfaceName(right_wheel_joint_names_.front()));
+
+  // Guard against NaN commands before any controller has been activated or
+  // after it has been deactivated. NaN would be sent to the ESP32 and turn
+  // into an undefined motor command.
+  if (std::isnan(left_cmd) || std::isnan(right_cmd)) {
+    left_cmd = 0.0;
+    right_cmd = 0.0;
+  }
 
   driver_->setTargetVelocityRadianPerSec(left_cmd, right_cmd);
 

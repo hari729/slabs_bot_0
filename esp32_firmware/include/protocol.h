@@ -36,12 +36,14 @@ struct EncoderReport {
   int32_t left_ticks;
   int32_t right_ticks;
   uint32_t timestamp_us;
+  int16_t accel[3];
+  int16_t gyro[3];
 };
 
 #pragma pack(pop)
 
 static_assert(sizeof(VelocityCmd) == 8, "VelocityCmd packing mismatch");
-static_assert(sizeof(EncoderReport) == 12, "EncoderReport packing mismatch");
+static_assert(sizeof(EncoderReport) == 24, "EncoderReport packing mismatch");
 
 /**
  * @brief CRC-16/CCITT-FALSE.

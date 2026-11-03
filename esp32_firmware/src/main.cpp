@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <ESP32Encoder.h>
+#include <Wire.h>
 #include <math.h>
 
 #include <freertos/FreeRTOS.h>
@@ -20,6 +21,25 @@ static const int LEFT_ENC_A_PIN = 34;
 static const int LEFT_ENC_B_PIN = 35;
 
 static const int ESTOP_PIN = 4;
+
+// MPU6050 I2C
+static const int MPU6050_SDA_PIN = 21;
+static const int MPU6050_SCL_PIN = 22;
+static const uint8_t MPU6050_ADDR = 0x68;
+
+static const uint8_t MPU6050_REG_PWR_MGMT_1 = 0x6B;
+static const uint8_t MPU6050_REG_ACCEL_CONFIG = 0x1C;
+static const uint8_t MPU6050_REG_GYRO_CONFIG = 0x1B;
+static const uint8_t MPU6050_REG_CONFIG = 0x1A;
+static const uint8_t MPU6050_REG_ACCEL_XOUT_H = 0x3B;
+
+static const uint8_t MPU6050_PWR_MGMT_1_RESET = 0x80;
+static const uint8_t MPU6050_PWR_MGMT_1_WAKE_CLK_PLL = 0x01;
+static const uint8_t MPU6050_ACCEL_CONFIG_FS_2G = 0x00;
+static const uint8_t MPU6050_GYRO_CONFIG_FS_250DPS = 0x00;
+static const uint8_t MPU6050_CONFIG_DLPF_44HZ = 0x03;
+
+static const uint32_t MPU6050_I2C_CLOCK_HZ = 400000;
 
 static const int LEFT_ENCODER_SIGN = -1;
 static const int RIGHT_ENCODER_SIGN = 1;
@@ -76,6 +96,8 @@ static TaskHandle_t g_control_task_handle = nullptr;
 static TaskHandle_t g_report_task_handle = nullptr;
 static TaskHandle_t g_serial_task_handle = nullptr;
 
+static bool g_mpu6050_initialized = false;
+
 static float clampf(float value, float min_value, float max_value) {
   if (value < min_value) return min_value;
   if (value > max_value) return max_value;
@@ -119,6 +141,92 @@ static void stop_motors_locked(bool take_mutex) {
   }
 }
 
+static bool write_mpu6050_register(uint8_t reg, uint8_t value) {
+  Wire.beginTransmission(MPU6050_ADDR);
+  Wire.write(reg);
+  Wire.write(value);
+  return Wire.endTransmission() == 0;
+}
+
+static bool read_mpu6050_registers(uint8_t reg, uint8_t *buffer, uint8_t len) {
+  Wire.beginTransmission(MPU6050_ADDR);
+  Wire.write(reg);
+  if (Wire.endTransmission(false) != 0) {
+    return false;
+  }
+  const uint8_t received = Wire.requestFrom(static_cast<int>(MPU6050_ADDR), static_cast<int>(len));
+  if (received < len) {
+    return false;
+  }
+  for (uint8_t i = 0; i < len; ++i) {
+    buffer[i] = static_cast<uint8_t>(Wire.read());
+  }
+  return true;
+}
+
+static int16_t build_int16(uint8_t high, uint8_t low) {
+  return static_cast<int16_t>((static_cast<uint16_t>(high) << 8) | static_cast<uint16_t>(low));
+}
+
+static bool init_mpu6050() {
+  Wire.begin(MPU6050_SDA_PIN, MPU6050_SCL_PIN, MPU6050_I2C_CLOCK_HZ);
+
+  // Reset the device and wait for reset to clear.
+  if (!write_mpu6050_register(MPU6050_REG_PWR_MGMT_1, MPU6050_PWR_MGMT_1_RESET)) {
+    return false;
+  }
+  delay(100);
+
+  // Wake up and use PLL with X-axis gyro reference.
+  if (!write_mpu6050_register(MPU6050_REG_PWR_MGMT_1, MPU6050_PWR_MGMT_1_WAKE_CLK_PLL)) {
+    return false;
+  }
+
+  // Configure DLPF for ~44 Hz gyro bandwidth.
+  if (!write_mpu6050_register(MPU6050_REG_CONFIG, MPU6050_CONFIG_DLPF_44HZ)) {
+    return false;
+  }
+
+  // Accel full scale: +/- 2 g.
+  if (!write_mpu6050_register(MPU6050_REG_ACCEL_CONFIG, MPU6050_ACCEL_CONFIG_FS_2G)) {
+    return false;
+  }
+
+  // Gyro full scale: +/- 250 deg/s.
+  if (!write_mpu6050_register(MPU6050_REG_GYRO_CONFIG, MPU6050_GYRO_CONFIG_FS_250DPS)) {
+    return false;
+  }
+
+  // Verify device identity by reading WHO_AM_I (0x75).
+  uint8_t who_am_i = 0;
+  if (!read_mpu6050_registers(0x75, &who_am_i, 1)) {
+    return false;
+  }
+  if (who_am_i != 0x68) {
+    return false;
+  }
+
+  return true;
+}
+
+static bool read_mpu6050_raw(int16_t accel[3], int16_t gyro[3]) {
+  uint8_t buffer[14];
+  if (!read_mpu6050_registers(MPU6050_REG_ACCEL_XOUT_H, buffer, 14)) {
+    return false;
+  }
+
+  accel[0] = build_int16(buffer[0], buffer[1]);
+  accel[1] = build_int16(buffer[2], buffer[3]);
+  accel[2] = build_int16(buffer[4], buffer[5]);
+
+  // Skip temperature bytes at buffer[6..7].
+  gyro[0] = build_int16(buffer[8], buffer[9]);
+  gyro[1] = build_int16(buffer[10], buffer[11]);
+  gyro[2] = build_int16(buffer[12], buffer[13]);
+
+  return true;
+}
+
 static bool estop_is_pressed() {
   if (ESTOP_PIN < 0) return false;
   return digitalRead(ESTOP_PIN) == LOW;
@@ -147,6 +255,10 @@ static int pi_to_pwm(float target_rpm, float measured_rpm, float &integral,
 }
 
 static void handle_velocity_command(float left_rpm, float right_rpm) {
+  if (isnan(left_rpm) || isnan(right_rpm)) {
+    return;
+  }
+
   if (xSemaphoreTake(g_state_mutex, MUTEX_TIMEOUT_TICKS) != pdTRUE) return;
 
   g_target_left_rpm = clampf(left_rpm, -MAX_ABS_RPM, MAX_ABS_RPM);
@@ -248,6 +360,22 @@ static void publish_encoder_report() {
   report.right_ticks = right_ticks;
   report.timestamp_us = micros();
 
+  for (int i = 0; i < 3; ++i) {
+    report.accel[i] = 0;
+    report.gyro[i] = 0;
+  }
+
+  if (g_mpu6050_initialized) {
+    int16_t accel[3] = {0, 0, 0};
+    int16_t gyro[3] = {0, 0, 0};
+    if (read_mpu6050_raw(accel, gyro)) {
+      for (int i = 0; i < 3; ++i) {
+        report.accel[i] = accel[i];
+        report.gyro[i] = gyro[i];
+      }
+    }
+  }
+
   uint8_t frame[sizeof(report) + 6];
   const uint16_t frame_len = esp32_protocol::frame_pack(
       esp32_protocol::PacketType::EncoderReport, &report, sizeof(report), frame);
@@ -324,6 +452,8 @@ void setup() {
   g_last_command_ms = millis();
   g_last_left_ticks = read_encoder_ticks(g_left_encoder, LEFT_ENCODER_SIGN);
   g_last_right_ticks = read_encoder_ticks(g_right_encoder, RIGHT_ENCODER_SIGN);
+
+  g_mpu6050_initialized = init_mpu6050();
 
   start_rtos_tasks();
 }

@@ -8,4 +8,13 @@
   </node>
   <node args="joint_state_broadcaster" exec="spawner" pkg="controller_manager"></node>
   <node args="diff_drive_controller" exec="spawner" pkg="controller_manager"></node>
+  <node args="imu_sensor_broadcaster" exec="spawner" pkg="controller_manager"></node>
+  <node exec="imu_filter_madgwick_node" name="imu_filter_node" pkg="imu_filter_madgwick">
+    <param from="$(find-pkg-share my_robot_bringup)/config/ekf.yaml"></param>
+    <remap from="/imu/data_raw" to="/imu_sensor_broadcaster/imu"></remap>
+    <remap from="/imu/data" to="/imu/data"></remap>
+  </node>
+  <node exec="ekf_node" name="ekf_filter_node" pkg="robot_localization">
+    <param from="$(find-pkg-share my_robot_bringup)/config/ekf.yaml"></param>
+  </node>
 </launch>

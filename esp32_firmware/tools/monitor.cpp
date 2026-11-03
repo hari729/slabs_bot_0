@@ -57,10 +57,13 @@ int main(int argc, char **argv) {
           parser.length() == sizeof(esp32_protocol::EncoderReport)) {
         esp32_protocol::EncoderReport report;
         std::memcpy(&report, parser.payload(), sizeof(report));
-        printf("L=%10ld  R=%10ld  t=%10u us\n",
+        printf("L=%10ld  R=%10ld  t=%10u us  "
+               "ax=%6d ay=%6d az=%6d  gx=%6d gy=%6d gz=%6d\n",
                static_cast<long>(report.left_ticks),
                static_cast<long>(report.right_ticks),
-               static_cast<unsigned int>(report.timestamp_us));
+               static_cast<unsigned int>(report.timestamp_us),
+               report.accel[0], report.accel[1], report.accel[2],
+               report.gyro[0], report.gyro[1], report.gyro[2]);
         fflush(stdout);
       }
       parser.reset();

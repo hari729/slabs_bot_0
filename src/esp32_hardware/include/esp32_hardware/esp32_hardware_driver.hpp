@@ -62,6 +62,12 @@ public:
   /** @brief Latest wheel velocity in rad/s. */
   double getVelocityRadianPerSec(WheelSide side) const;
 
+  /** @brief Latest linear acceleration in m/s^2 (axis 0=x, 1=y, 2=z). */
+  double getLinearAcceleration(size_t axis) const;
+
+  /** @brief Latest angular velocity in rad/s (axis 0=x, 1=y, 2=z). */
+  double getAngularVelocity(size_t axis) const;
+
 private:
   bool openPort();
   void readAvailableBytes();
@@ -85,6 +91,15 @@ private:
   double right_position_{0.0};
   double left_velocity_{0.0};
   double right_velocity_{0.0};
+
+  double linear_acceleration_[3]{0.0, 0.0, 0.0};
+  double angular_velocity_[3]{0.0, 0.0, 0.0};
+
+  static constexpr size_t kGyroCalibrationSamples = 50;
+  double gyro_bias_[3]{0.0, 0.0, 0.0};
+  double gyro_bias_sum_[3]{0.0, 0.0, 0.0};
+  size_t gyro_cal_count_{0};
+  bool gyro_calibrated_{false};
 
   long prev_left_ticks_{0};
   long prev_right_ticks_{0};

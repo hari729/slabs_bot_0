@@ -30,6 +30,14 @@
   <xacro:wheel_link prefix="right_2"></xacro:wheel_link>
   <xacro:wheel_link prefix="left_1"></xacro:wheel_link>
   <xacro:wheel_link prefix="left_2"></xacro:wheel_link>
+
+  <link name="imu_link"></link>
+  <joint name="base_imu_joint" type="fixed">
+    <parent link="base_link"></parent>
+    <child link="imu_link"></child>
+    <origin rpy="-${pi / 2.0} -${pi / 2.0} 0" xyz="-${(base_length / 2.0) - 0.08} -${(base_width / 2.0) - 0.06} 0.015"></origin>
+  </joint>
+
   <joint name="base_joint" type="fixed">
     <parent link="base_footprint"></parent>
     <child link="base_link"></child>

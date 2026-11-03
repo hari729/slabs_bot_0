@@ -8,6 +8,9 @@ controller_manager:
     diff_drive_controller:
       type: diff_drive_controller/DiffDriveController
 
+    imu_sensor_broadcaster:
+      type: imu_sensor_broadcaster/IMUSensorBroadcaster
+
 diff_drive_controller:
   ros__parameters:
     left_wheel_names: ["base_left_1_wheel_joint", "base_left_2_wheel_joint"]
@@ -22,10 +25,18 @@ diff_drive_controller:
     pose_covariance_diagonal: [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]
     twist_covariance_diagonal: [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]
 
-    enable_odom_tf: true
+    enable_odom_tf: false
     publish_rate: 50.0
 
     linear.x.max_velocity: 0.5
     linear.x.min_velocity: -0.5
     angular.z.max_velocity: 3.0
     angular.z.min_velocity: -3.0
+
+imu_sensor_broadcaster:
+  ros__parameters:
+    sensor_name: imu_sensor
+    frame_id: imu_link
+    static_covariance_orientation: [0.001, 0.0, 0.0, 0.0, 0.001, 0.0, 0.0, 0.0, 0.001]
+    static_covariance_angular_velocity: [0.0001, 0.0, 0.0, 0.0, 0.0001, 0.0, 0.0, 0.0, 0.0001]
+    static_covariance_linear_acceleration: [0.0001, 0.0, 0.0, 0.0, 0.0001, 0.0, 0.0, 0.0, 0.0001]
