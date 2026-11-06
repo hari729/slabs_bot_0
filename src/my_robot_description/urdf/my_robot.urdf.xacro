@@ -1,8 +1,19 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <robot name="my_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
-
-    <xacro:include filename="common_properties.xacro" />
-    <xacro:include filename="mobile_base.xacro" />
-    <xacro:include filename="mobile_base.ros2_control.xacro" />
-
+  <xacro:arg default="0.09" name="mearm_mount_x"></xacro:arg>
+  <xacro:arg default="0.0" name="mearm_mount_y"></xacro:arg>
+  <xacro:arg default="0.01" name="mearm_mount_z"></xacro:arg>
+  <xacro:arg default="0.0" name="mearm_mount_yaw"></xacro:arg>
+  <xacro:property name="mearm_mount_x" value="$(arg mearm_mount_x)"></xacro:property>
+  <xacro:property name="mearm_mount_y" value="$(arg mearm_mount_y)"></xacro:property>
+  <xacro:property name="mearm_mount_z" value="$(arg mearm_mount_z)"></xacro:property>
+  <xacro:property name="mearm_mount_yaw" value="$(arg mearm_mount_yaw)"></xacro:property>
+  <xacro:include filename="common_properties.xacro"></xacro:include>
+  <xacro:include filename="mobile_base.xacro"></xacro:include>
+  <xacro:include filename="mobile_base.ros2_control.xacro"></xacro:include>
+  <xacro:include filename="mearm.ros2_control.xacro"></xacro:include>
+  <xacro:include filename="$(find mearm_model)/urdf/mearm.xacro"></xacro:include>
+  <xacro:mearm parent_link="top_cover" prefix="mearm_">
+    <origin rpy="0 0 ${mearm_mount_yaw}" xyz="${mearm_mount_x} ${mearm_mount_y} ${mearm_mount_z}"></origin>
+  </xacro:mearm>
 </robot>

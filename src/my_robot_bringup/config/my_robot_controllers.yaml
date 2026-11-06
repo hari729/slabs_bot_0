@@ -8,6 +8,9 @@ controller_manager:
     diff_drive_controller:
       type: diff_drive_controller/DiffDriveController
 
+    joint_group_position_controller:
+      type: position_controllers/JointGroupPositionController
+
     imu_sensor_broadcaster:
       type: imu_sensor_broadcaster/IMUSensorBroadcaster
 
@@ -40,3 +43,16 @@ imu_sensor_broadcaster:
     static_covariance_orientation: [0.001, 0.0, 0.0, 0.0, 0.001, 0.0, 0.0, 0.0, 0.001]
     static_covariance_angular_velocity: [0.0001, 0.0, 0.0, 0.0, 0.0001, 0.0, 0.0, 0.0, 0.0001]
     static_covariance_linear_acceleration: [0.0001, 0.0, 0.0, 0.0, 0.0001, 0.0, 0.0, 0.0, 0.0001]
+
+joint_group_position_controller:
+  ros__parameters:
+    joints:
+      - mearm_joint_0
+      - mearm_joint_1
+      - mearm_joint_2
+      - mearm_joint_3
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity

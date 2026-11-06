@@ -1,0 +1,506 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:macro name="mearm" params="prefix parent_link *origin">
+    <material name="${prefix}blue">
+      <color rgba="0 0 0.8 1"></color>
+    </material>
+    <material name="${prefix}white">
+      <color rgba="1 1 1 1"></color>
+    </material>
+    <!-- Mounting joint to the mobile base / parent link -->
+    <joint name="${prefix}mount_joint" type="fixed">
+      <xacro:insert_block name="origin" />
+      <parent link="${parent_link}"></parent>
+      <child link="${prefix}base_link"></child>
+    </joint>
+
+    <!-- controllable joints -->
+    <!-- ${prefix}joint_0 - base servo -->
+    <!-- ${prefix}joint_1 - right servo  -->
+    <!-- ${prefix}joint_2 - left servo -->
+    <!-- ${prefix}joint_3 - gripper servo -->
+    <joint name="${prefix}joint_0" type="revolute">
+      <axis xyz="0 0 1"></axis>
+      <limit effort="1000.0" lower="-0.7853" upper="0.7853" velocity="0.5"></limit>
+      <origin xyz="0 0 0.024"></origin>
+      <parent link="${prefix}base_link"></parent>
+      <child link="${prefix}column"></child>
+    </joint>
+    <joint name="${prefix}joint_1" type="revolute">
+      <axis xyz="0 0 1"></axis>
+      <limit effort="1000.0" lower="-1.57" upper="1.0" velocity="0.5"></limit>
+      <origin rpy="1.5707 -1.5707 0" xyz="0.014 -0.0025 0.029"></origin>
+      <parent link="${prefix}column"></parent>
+      <child link="${prefix}arm_0"></child>
+    </joint>
+    <joint name="${prefix}joint_2" type="revolute">
+      <axis xyz="0 0 1"></axis>
+      <limit effort="1000.0" lower="0.0" upper="1.57" velocity="0.5"></limit>
+      <origin rpy="1.57 0 3.14" xyz="0.015 0.01 0.03"></origin>
+      <parent link="${prefix}column"></parent>
+      <child link="${prefix}arm_1_support_0"></child>
+    </joint>
+    <!-- base column -->
+    <link name="${prefix}base_link">
+      <visual>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/base.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin xyz="-0.963 -0.19 -0.002"></origin>
+      </visual>
+      <visual>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/base_top.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin rpy="0 0 0.7853" xyz="-0.632 -0.9 0.016"></origin>
+      </visual>
+      <visual>
+        <geometry>
+          <cylinder length="0.02" radius="0.002"></cylinder>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin rpy="0 0 0" xyz="0.022 0.022 0.008"></origin>
+      </visual>
+      <visual>
+        <geometry>
+          <cylinder length="0.02" radius="0.002"></cylinder>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin rpy="0 0 0" xyz="0.022 -0.022 0.008"></origin>
+      </visual>
+      <visual>
+        <geometry>
+          <cylinder length="0.02" radius="0.002"></cylinder>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin rpy="0 0 0" xyz="-0.022 0.022 0.008"></origin>
+      </visual>
+      <visual>
+        <geometry>
+          <cylinder length="0.02" radius="0.002"></cylinder>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin rpy="0 0 0" xyz="-0.022 -0.022 0.008"></origin>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/base.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <origin xyz="-0.963 -0.19 -0.002"></origin>
+      </collision>
+      <collision>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/base_top.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <origin rpy="0 0 0.7853" xyz="-0.631 -0.9 0.016"></origin>
+      </collision>
+    </link>
+    <link name="${prefix}column">
+      <visual>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/column_base.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin rpy="0 0 -1.5707" xyz="-0.231 -0.05 -0.002"></origin>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/column_base.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <origin rpy="0 0 -1.5707" xyz="-0.231 -0.05 -0.002"></origin>
+      </collision>
+      <visual>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/column_left.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin rpy="1.5707 0 0" xyz="-0.8 0.022 -0.1655"></origin>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/column_left.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <origin rpy="1.5707 0 0" xyz="-0.8 0.022 -0.1655"></origin>
+      </collision>
+      <visual>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/column_right.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin rpy="1.5707 0 3.1415" xyz="0.71 -0.022 -0.164"></origin>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/column_right.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <origin rpy="1.5707 0 3.1415" xyz="0.71 -0.022 -0.164"></origin>
+      </collision>
+      <visual>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/column_board.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin rpy="1.5707 0 -1.5707" xyz="0.028 -0.16 -0.18"></origin>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/column_board.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <origin rpy="1.5707 0 -1.5707" xyz="0.028 -0.16 -0.18"></origin>
+      </collision>
+      <visual>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/column_board.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin rpy="1.5707 0 -1.5707" xyz="-0.023 -0.16 -0.18"></origin>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/column_board.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <origin rpy="1.5707 0 3.1415" xyz="0.71 -0.022 -0.164"></origin>
+      </collision>
+      <visual>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/column_connector.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin rpy="1.5707 0 0" xyz="-0.08 0.005 -0.19"></origin>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/column_connector.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <origin rpy="1.5707 0 0" xyz="-0.08 0.005 -0.19"></origin>
+      </collision>
+    </link>
+    <!-- arm 0 - controlled by right servo -->
+    <link name="${prefix}arm_0">
+      <visual>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/arm_0_base.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin rpy="-1.5707 0 0" xyz="0.031 0 0.214"></origin>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/arm_0_base.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <origin rpy="-1.5707 0 0" xyz="0.031 0 0.214"></origin>
+      </collision>
+      <visual>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/arm_0_left.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin rpy="3.1415 0 0" xyz="0.0515 0.179 0.013"></origin>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/arm_0_left.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <origin rpy="3.1415 0 0" xyz="0.0515 0.179 0.013"></origin>
+      </collision>
+      <visual>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/arm_0_right.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin rpy="3.1415 0 0" xyz="0.0418 0.154 -0.007"></origin>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/arm_0_right.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <origin rpy="3.1415 0 0" xyz="0.0418 0.154 -0.007"></origin>
+      </collision>
+    </link>
+    <!-- arm_0 - link from column to connector -->
+    <link name="${prefix}arm_0_support">
+      <visual>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/arm_1_right.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin xyz="0.181 -0.162 0.003"></origin>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/arm_1_right.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin xyz="0.181 -0.162 0.003"></origin>
+      </collision>
+    </link>
+    <joint name="${prefix}arm_0_support_mimic" type="revolute">
+      <axis xyz="0 0 1"></axis>
+      <limit effort="1000.0" lower="0.0" upper="1.57" velocity="0.5"></limit>
+      <origin rpy="1.57 0 0" xyz="-0.021 -0.019 0.045"></origin>
+      <parent link="${prefix}column"></parent>
+      <mimic joint="${prefix}joint_1" multiplier="1" offset="1.57"></mimic>
+      <child link="${prefix}arm_0_support"></child>
+    </joint>
+    <!-- connector -->
+    <link name="${prefix}connector">
+      <visual>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/arm_1_connector.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin rpy="0 0 -1.5707" xyz="-0.1935 0.45 0.013"></origin>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/arm_1_connector.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin rpy="0 0 -1.5707" xyz="-0.1935 0.45 0.013"></origin>
+      </collision>
+    </link>
+    <joint name="${prefix}arm_0_connector_mimic" type="revolute">
+      <axis xyz="0 0 1"></axis>
+      <limit effort="1000.0" lower="-1.57" upper="1.57" velocity="0.5"></limit>
+      <origin xyz="0.08 0.0 0.003"></origin>
+      <parent link="${prefix}arm_0"></parent>
+      <mimic joint="${prefix}joint_1" multiplier="-1" offset="-1.57"></mimic>
+      <child link="${prefix}connector"></child>
+    </joint>
+    <!-- arm_1 - link from connector to gripper -->
+    <joint name="${prefix}joint_2_mimic_0a" type="revolute">
+      <axis xyz="0 0 1"></axis>
+      <limit effort="1000.0" lower="-1.57" upper="0.4" velocity="0.5"></limit>
+      <origin xyz="0.035 0 0"></origin>
+      <mimic joint="${prefix}joint_2" multiplier="-1" offset="1.57"></mimic>
+      <parent link="${prefix}arm_1_support_0"></parent>
+      <child link="${prefix}arm_1_support_1a"></child>
+    </joint>
+    <joint name="${prefix}joint_2_mimic_0b" type="revolute">
+      <axis xyz="0 0 1"></axis>
+      <limit effort="1000.0" lower="-1.57" upper="0.4" velocity="0.5"></limit>
+      <origin xyz="0 0 0"></origin>
+      <mimic joint="${prefix}joint_1" multiplier="-1" offset="0"></mimic>
+      <parent link="${prefix}arm_1_support_1a"></parent>
+      <child link="${prefix}arm_1_support_1b"></child>
+    </joint>
+    <joint name="${prefix}joint_2_mimic_1" type="revolute">
+      <axis xyz="0 0 1"></axis>
+      <limit effort="1000.0" lower="-1.57" upper="0.4" velocity="0.5"></limit>
+      <origin xyz="0.08 0 0"></origin>
+      <mimic joint="${prefix}joint_2" multiplier="-1" offset="-1.57"></mimic>
+      <parent link="${prefix}arm_0"></parent>
+      <child link="${prefix}arm_1a"></child>
+    </joint>
+    <joint name="${prefix}arm1_mimic_0" type="revolute">
+      <axis xyz="0 0 1"></axis>
+      <limit effort="1000.0" lower="-1.57" upper="0.4" velocity="0.5"></limit>
+      <origin xyz="0 0 0"></origin>
+      <mimic joint="${prefix}joint_1" multiplier="-1" offset="0"></mimic>
+      <parent link="${prefix}arm_1a"></parent>
+      <child link="${prefix}arm_1b"></child>
+    </joint>
+    <link name="${prefix}arm_1a"></link>
+    <link name="${prefix}arm_1b">
+      <visual>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/arm_1_left.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin xyz="-0.231 -0.177 -0.013"></origin>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/arm_1_left.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin xyz="-0.231 -0.177 -0.013"></origin>
+      </collision>
+      <visual>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/arm_1_right.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin xyz="0.182 -0.161 0.013"></origin>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/arm_1_right.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin xyz="0.182 -0.161 0.013"></origin>
+      </collision>
+    </link>
+    <!-- arm support -->
+    <link name="${prefix}arm_1_support_0">
+      <visual>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/servo_actuator.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin rpy="0 0 3.14" xyz="0.532 0.18 0.005"></origin>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/servo_actuator.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin rpy="0 0 3.14" xyz="0.532 0.18 0.005"></origin>
+      </collision>
+    </link>
+    <link name="${prefix}arm_1_support_1a"></link>
+    <link name="${prefix}arm_1_support_1b">
+      <visual>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/arm_1_right.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin xyz="0.18 -0.162 0.003"></origin>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/arm_1_right.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin xyz="0.18 -0.162 0.003"></origin>
+      </collision>
+    </link>
+    <!-- gripper support -->
+    <joint name="${prefix}gripper_support_mimic" type="revolute">
+      <axis xyz="0 0 1"></axis>
+      <limit effort="1000.0" lower="-1.57" upper="0.4" velocity="0.5"></limit>
+      <origin rpy="0 0 1.57" xyz="0.012 0.018 0.017"></origin>
+      <mimic joint="${prefix}joint_2" multiplier="-1" offset="-1.57"></mimic>
+      <parent link="${prefix}connector"></parent>
+      <child link="${prefix}gripper_support"></child>
+    </joint>
+    <link name="${prefix}gripper_support">
+      <visual>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/arm_1_right.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin xyz="0.18 -0.162 0"></origin>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/arm_1_right.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin xyz="0.18 -0.162 0"></origin>
+      </collision>
+    </link>
+    <!-- gripper -->
+    <joint name="${prefix}gripper_holder" type="revolute">
+      <axis xyz="0 0 1"></axis>
+      <limit effort="1000.0" lower="-1.57" upper="0.4" velocity="0.5"></limit>
+      <origin rpy="0 0 1.57" xyz="0.081 0.001 0.0"></origin>
+      <mimic joint="${prefix}joint_2" multiplier="1" offset="-1.57"></mimic>
+      <parent link="${prefix}arm_1b"></parent>
+      <child link="${prefix}gripper"></child>
+    </joint>
+    <link name="${prefix}gripper">
+      <visual>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/gripper_base.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin rpy="0 1.57 1.57" xyz="0.18 -0.005 0.1538"></origin>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/gripper_base.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin rpy="0 1.57 1.57" xyz="0.18 -0.005 0.1538"></origin>
+      </collision>
+      <visual>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/gripper_support.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin rpy="0 3.14 3.92" xyz="-0.045 0.168 0.016"></origin>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/gripper_support.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin rpy="0 3.14 3.92" xyz="-0.045 0.168 0.016"></origin>
+      </collision>
+      <visual>
+        <geometry>
+          <box size="0.024 0.018 0.012"></box>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin xyz="0.004 0.0035 0.002"></origin>
+      </visual>
+      <collision>
+        <geometry>
+          <box size="0.024 0.018 0.012"></box>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin xyz="0.004 0.0035 0.002"></origin>
+      </collision>
+    </link>
+    <!-- left gripper -->
+    <joint name="${prefix}joint_3" type="revolute">
+      <axis xyz="0 0 1"></axis>
+      <limit effort="1000.0" lower="0" upper="1.57" velocity="0.5"></limit>
+      <origin rpy="-1.57 0 0" xyz="0.028 -0.003 -0.007"></origin>
+      <parent link="${prefix}gripper"></parent>
+      <child link="${prefix}gripper_left"></child>
+    </joint>
+    <link name="${prefix}gripper_left">
+      <visual>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/gripper_left.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin rpy="0 3.14 3.14" xyz="-0.535 0.212 0.0"></origin>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/gripper_left.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin rpy="0 3.14 3.14" xyz="-0.535 0.212 0.0"></origin>
+      </collision>
+    </link>
+    <!-- right gripper -->
+    <joint name="${prefix}joint_3_mimic" type="revolute">
+      <axis xyz="0 0 1"></axis>
+      <limit effort="1000.0" lower="0" upper="1.57" velocity="0.5"></limit>
+      <origin rpy="-1.57 0 0" xyz="0.028 -0.003 0.011"></origin>
+      <mimic joint="${prefix}joint_3" multiplier="-1" offset="0"></mimic>
+      <parent link="${prefix}gripper"></parent>
+      <child link="${prefix}gripper_right"></child>
+    </joint>
+    <link name="${prefix}gripper_right">
+      <visual>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/gripper_right.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin rpy="0 3.14 -1.57" xyz="-0.185 -0.57 0.0"></origin>
+      </visual>
+      <collision>
+        <geometry>
+          <mesh filename="package://mearm_model/meshes/gripper_right.stl" scale="0.001 0.001 0.001"></mesh>
+        </geometry>
+        <material name="${prefix}blue"></material>
+        <origin rpy="0 3.14 -1.57" xyz="-0.185 -0.57 0.0"></origin>
+      </collision>
+    </link>
+    <!-- tool tf -->
+    <joint name="${prefix}tool_joint" type="fixed">
+      <axis xyz="0 0 1"></axis>
+      <origin rpy="-1.57 0 0" xyz="0.043 -0.005 0.003"></origin>
+      <parent link="${prefix}gripper"></parent>
+      <child link="${prefix}tool"></child>
+    </joint>
+    <link name="${prefix}tool"></link>
+  </xacro:macro>
+</robot>

@@ -8,6 +8,8 @@
      Wheel geometry (wheel_radius, wheel_separation) is configured in the
      diff_drive_controller YAML, not here.
      ============================================================================= --><robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:arg name="use_esp32_hardware" default="true"/>
+  <xacro:if value="$(arg use_esp32_hardware)">
   <ros2_control name="esp32_diff_drive_ros2_control" type="system">
     <hardware>
       <plugin>esp32_hardware/Esp32HardwareInterface</plugin>
@@ -61,4 +63,5 @@
       <state_interface name="linear_acceleration.z"/>
     </sensor>
   </ros2_control>
+  </xacro:if>
 </robot>

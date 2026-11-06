@@ -38,6 +38,12 @@ def generate_launch_description():
         arguments=["diff_drive_controller"],
     )
 
+    joint_group_position_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["joint_group_position_controller"],
+    )
+
     imu_sensor_broadcaster_spawner = Node(
         package="controller_manager",
         executable="spawner",
@@ -74,6 +80,7 @@ def generate_launch_description():
         control_node,
         joint_state_broadcaster_spawner,
         diff_drive_controller_spawner,
+        joint_group_position_controller_spawner,
         imu_sensor_broadcaster_spawner,
         imu_filter_node,
         ekf_node,
