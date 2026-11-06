@@ -3,6 +3,11 @@
   <node args="-d $(var rviz_config_path)" exec="rviz2" output="screen" pkg="rviz2"></node>
   <node exec="teleop_twist_keyboard" launch-prefix="xterm -e" name="teleop_twist_keyboard" output="screen" pkg="teleop_twist_keyboard">
     <param name="stamped" value="true"></param>
+    <!-- Mirror joystick velocity scales from teleop_joystick.launch.xml -->
+    <param name="speed" value="0.5"></param>
+    <param name="turn" value="2.0"></param>
+    <param name="speed_limit" value="1.0"></param>
+    <param name="turn_limit" value="3.0"></param>
     <remap from="cmd_vel" to="/diff_drive_controller/cmd_vel"></remap>
   </node>
 </launch>
