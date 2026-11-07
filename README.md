@@ -6,6 +6,8 @@ An MPU6050 IMU is wired directly to the ESP32 and its accel + gyro data is sent 
 
 A 4-DOF MeArm manipulator is mounted on top of the base. It is driven by a separate Arduino Uno over the same framed serial protocol, exposed to `ros2_control` through the `mearm_hardware` plugin, and controlled by `joint_group_position_controller`.
 
+[![Demo video](https://img.youtube.com/vi/FEDQCEra-EA/maxresdefault.jpg)](https://www.youtube.com/watch?v=FEDQCEra-EA)
+
 ## Quick start
 
 ```bash
@@ -337,6 +339,13 @@ The ESP32 firmware also rejects `NaN` RPM commands as a second line of defense.
 │       └── my_robot_teleop/teleop_keyboard.py
 └── README.md                       # This file
 ```
+
+## Credits
+
+- ESP32 base firmware is a modified version of
+  [pikkuri14/esp32diffrobot](https://github.com/pikkuri14/esp32diffrobot).
+- The MeArm URDF and meshes in `src/mearm_model` come from
+  [kubasikora/mearm_model](https://github.com/kubasikora/mearm_model) (MIT).
 
 ## License
 
