@@ -65,7 +65,7 @@ class TeleopKeyboard(Node):
         self.speed_limit = self.declare_parameter('speed_limit', 1.0).value
         self.turn_limit = self.declare_parameter('turn_limit', 3.0).value
         self.arm_step = self.declare_parameter('arm_step', 0.05).value
-        self.arm_base_speed = self.declare_parameter('arm_base_speed', 0.5).value
+        self.arm_base_speed = self.declare_parameter('arm_base_speed', 0.2).value
         self.arm_base_timeout = self.declare_parameter('arm_base_timeout', 0.5).value
 
         TwistMsg = TwistStamped if self.stamped else Twist

@@ -12,7 +12,7 @@
     <param name="turn_limit" value="3.0"></param>
     <!-- Arm control tuning -->
     <param name="arm_step" value="0.05"></param>
-    <param name="arm_base_speed" value="0.5"></param>
+    <param name="arm_base_speed" value="0.2"></param>
     <param name="arm_base_timeout" value="0.5"></param>
     <remap from="cmd_vel" to="/diff_drive_controller/cmd_vel"></remap>
   </node>
