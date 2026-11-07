@@ -9,19 +9,18 @@
     </material>
     <!-- Mounting joint to the mobile base / parent link -->
     <joint name="${prefix}mount_joint" type="fixed">
-      <xacro:insert_block name="origin" />
+      <xacro:insert_block name="origin"></xacro:insert_block>
       <parent link="${parent_link}"></parent>
       <child link="${prefix}base_link"></child>
     </joint>
-
     <!-- controllable joints -->
     <!-- ${prefix}joint_0 - base servo -->
     <!-- ${prefix}joint_1 - right servo  -->
     <!-- ${prefix}joint_2 - left servo -->
     <!-- ${prefix}joint_3 - gripper servo -->
-    <joint name="${prefix}joint_0" type="revolute">
+    <joint name="${prefix}joint_0" type="continuous">
       <axis xyz="0 0 1"></axis>
-      <limit effort="1000.0" lower="-0.7853" upper="0.7853" velocity="0.5"></limit>
+      <limit effort="1000.0" velocity="0.5"></limit>
       <origin xyz="0 0 0.024"></origin>
       <parent link="${prefix}base_link"></parent>
       <child link="${prefix}column"></child>
@@ -472,7 +471,7 @@
     <!-- right gripper -->
     <joint name="${prefix}joint_3_mimic" type="revolute">
       <axis xyz="0 0 1"></axis>
-      <limit effort="1000.0" lower="0" upper="1.57" velocity="0.5"></limit>
+      <limit effort="1000.0" lower="-1.57" upper="0" velocity="0.5"></limit>
       <origin rpy="-1.57 0 0" xyz="0.028 -0.003 0.011"></origin>
       <mimic joint="${prefix}joint_3" multiplier="-1" offset="0"></mimic>
       <parent link="${prefix}gripper"></parent>

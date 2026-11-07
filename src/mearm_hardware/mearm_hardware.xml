@@ -1,0 +1,9 @@
+<library path="mearm_hardware">
+  <class name="mearm_hardware/MeArmHardwareInterface"
+         type="mearm_hardware::MeArmHardwareInterface"
+         base_class_type="hardware_interface::SystemInterface">
+    <description>
+      ros2_control SystemInterface for the MeArm Arduino servo bridge.
+    </description>
+  </class>
+</library>

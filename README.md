@@ -28,10 +28,20 @@ ros2 launch my_robot_bringup my_robot.launch.py
 In a second terminal:
 
 ```bash
-# Keyboard teleop
+# Keyboard teleop (base + MeArm)
 ros2 launch my_robot_bringup teleop_keyboard.launch.xml
-
-# OR joystick teleop
+#
+#   Wheels:       u i o    Arm:
+#                 j k l      w/x = shoulder up/down
+#                 m , .      e/c = elbow up/down
+#                            r/f = claw open/close
+#                            a/d = arm base rotate
+#                            s   = stop arm base
+#                            h   = home pose
+#                            [ ] = arm step size
+#   k/space = stop wheels
+#
+# OR joystick teleop (base only)
 ros2 launch my_robot_bringup teleop_joystick.launch.xml joy_dev:=/dev/input/js0
 ```
 
@@ -92,7 +102,7 @@ flowchart LR
     J -->|/odometry/filtered + odom->base_footprint| K[Navigation / RViz]
 ```
 
-1. **Teleop** (`teleop_twist_keyboard` or `teleop_twist_joy`) publishes `TwistStamped`.
+1. **Teleop** (`my_robot_teleop/teleop_keyboard` or `teleop_twist_joy`) publishes `TwistStamped`.
 2. **diff_drive_controller** computes left/right wheel velocities in rad/s, publishes wheel odometry, and exposes joint states. `enable_odom_tf` is disabled because the EKF owns the `odom -> base_footprint` transform.
 3. **esp32_hardware** is a `ros2_control` `SystemInterface` plugin. It reads commands, sends a binary `VelocityCmd` frame, parses `EncoderReport` frames, and exposes the `imu_sensor` state interfaces.
 4. **ESP32 firmware** runs the PI controller at 100 Hz, reports encoders + IMU at 50 Hz, and monitors a command watchdog.

@@ -14,9 +14,12 @@ PlatformIO firmware for the MeArm mounted on the diff-drive base.
 
 ## Servo conventions
 
+All position joint commands are physical servo angles in radians.
+
 - **Base**: continuous-rotation servo. Command `joint_0` is speed: `-1.0` full reverse, `0.0` stop, `+1.0` full forward.
-- **Shoulder / elbow**: position servos. Command `joint_1` and `joint_2` are physical servo angles in radians, range `0 .. pi` (`0 deg .. 180 deg`). `pi/2` (90 deg) is the attach/reference position.
-- **Claw**: position servo. Command `joint_3` is physical servo angle in radians, range `1.39 .. 1.6581 rad` (`80 deg` closed, `95 deg` open).
+- **Shoulder**: `joint_1` range `0.5708 .. pi` rad (`32.7 deg .. 180 deg`). `pi/2` (90 deg) is the attach/reference position.
+- **Elbow**: `joint_2` range `0 .. pi/2` rad (`0 deg .. 90 deg`). `pi/2` (90 deg) is the attach/reference position.
+- **Claw**: `joint_3` range `1.3963 .. 1.6581` rad (`80 deg` closed, `95 deg` open).
 
 ## Setup mode
 

@@ -28,9 +28,9 @@ enum PacketType : uint8_t {
 
 struct ServoCmd {
   float joint_0;  // base: continuous-rotation speed, -1.0 .. +1.0
-  float joint_1;  // shoulder: angle in radians
-  float joint_2;  // elbow: angle in radians
-  float joint_3;  // claw: angle in radians, 0=open, pi/2=closed
+  float joint_1;  // shoulder: physical servo angle in radians, 0.5708 .. pi
+  float joint_2;  // elbow: physical servo angle in radians, 0 .. pi/2
+  float joint_3;  // claw: physical servo angle in radians, 1.3963=closed .. 1.6581=open
 };
 
 #pragma pack(pop)

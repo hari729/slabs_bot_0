@@ -28,13 +28,14 @@ static const int BASE_STOP_US = 1500;
 static const int BASE_MIN_US = 1000;
 static const int BASE_MAX_US = 2000;
 
-// Physical angle limits for position joints (radians)
-static const float SHOULDER_MIN_RAD = 0.0f;    // 0 deg
-static const float SHOULDER_MAX_RAD = M_PI;    // 180 deg
-static const float ELBOW_MIN_RAD = 0.0f;       // 0 deg
-static const float ELBOW_MAX_RAD = M_PI;       // 180 deg
-static const float CLAW_CLOSED_RAD = 1.39626f; // closed, 80 deg
-static const float CLAW_OPEN_RAD = 1.65806f;   // open, 95 deg
+// Physical servo angle limits for position joints (radians).
+// These match the URDF-mapped ranges used by the ROS driver.
+static const float SHOULDER_MIN_RAD = 0.5707963f;  // 32.7 deg
+static const float SHOULDER_MAX_RAD = M_PI;        // 180 deg
+static const float ELBOW_MIN_RAD = 0.0f;           // 0 deg
+static const float ELBOW_MAX_RAD = M_PI_2;         // 90 deg
+static const float CLAW_CLOSED_RAD = 1.39626f;     // closed, 80 deg
+static const float CLAW_OPEN_RAD = 1.65806f;       // open, 95 deg
 
 // Watchdog
 static const uint32_t WATCHDOG_TIMEOUT_MS = 500;
