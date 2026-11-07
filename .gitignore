@@ -8,6 +8,11 @@ log/
 .pioenvs/
 .piolibdeps/
 
+# Compiled host tools
+esp32_firmware/monitor
+esp32_firmware/serial_test
+esp32_firmware/tools/monitor
+
 # Python
 __pycache__/
 *.pyc

@@ -298,7 +298,6 @@ The ESP32 firmware also rejects `NaN` RPM commands as a second line of defense.
 │   ├── include/protocol.h          # Framed serial protocol header
 │   ├── src/main.cpp                # Servo bridge, setup mode, watchdog
 │   └── platformio.ini
-├── MeArm-Arduino/                  # Vendored MeArm forward/inverse kinematics
 ├── src/
 │   ├── esp32_hardware/             # ros2_control SystemInterface plugin
 │   │   ├── include/esp32_hardware/
